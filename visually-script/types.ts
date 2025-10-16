@@ -25,7 +25,7 @@ export interface PresentationSlide {
 // Base for all elements that can be placed on a slide
 export interface SlideElement {
     id: string;
-    type: 'text' | 'image' | 'math' | 'shape';
+    type: 'text' | 'image' | 'math' | 'shape' | 'gamification';
     x: number;
     y: number;
     width: number;
@@ -66,6 +66,22 @@ export interface ShapeSlideElement extends SlideElement {
     fillColor?: string;
 }
 
+// --- GAMIFICATION TYPES (for scripting) ---
+export interface GamificationAction {
+  id: string;
+  type: 'text' | 'move' | 'wait';
+  text?: string;
+  targetX?: number;
+  targetY?: number;
+  duration?: number;
+}
+
+export interface GamificationElement extends SlideElement {
+    type: 'gamification';
+    character: 'char1' | 'char2' | 'char3' | 'char4' | 'char5' | 'char6' | 'character_7.png';
+    actions: GamificationAction[];
+}
+
 // Represents a source/citation for the presentation
 export interface SourceItem {
     id: string;
@@ -73,4 +89,48 @@ export interface SourceItem {
     url: string;
     notes?: string;
     tags?: string[];
+}
+
+// --- QUIZ TYPES (for scripting) ---
+export interface QuizAnswerOption {
+  id: string;
+  text: string;
+  isCorrect: boolean;
+}
+
+export interface MultipleChoiceQuestion {
+  id: string;
+  type: 'multiple-choice';
+  questionText: string;
+  timer: number;
+  options: QuizAnswerOption[];
+}
+
+export interface OpenTextQuestion {
+    id: string;
+    type: 'open-text';
+    questionText: string;
+    timer: number;
+}
+
+export type QuizQuestion = MultipleChoiceQuestion | OpenTextQuestion;
+
+export interface Quiz {
+  id: string;
+  title: string;
+  questions: QuizQuestion[];
+}
+
+// --- CODE PROJECT TYPES (for scripting) ---
+export interface CodeFile {
+    id: string;
+    name: string;
+    language: 'html' | 'css' | 'javascript' | 'python' | 'rust';
+    content: string;
+}
+
+export interface CodeProject {
+    id: string;
+    title: string;
+    files: CodeFile[];
 }
