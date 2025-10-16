@@ -29,7 +29,7 @@ const pres = new Presentation();
 pres.addImage({ name: 'A beautiful landscape', dataUrl: 'https://picsum.photos/seed/1/1280/720' });
 pres.addYouTube({ name: 'Next.js Conf', url: 'https://www.youtube.com/watch?v=k_x21-J2d-I' });
 
-// 3. Create a custom slide
+// 3. Create a custom slide with a character
 const titleSlide = new Slide('Title Slide');
 titleSlide.setBackgroundColor('#5B8E7D');
 titleSlide.addText({
@@ -40,16 +40,38 @@ titleSlide.addText({
     x: 150, y: 200, width: 700, height: 100,
     textAlign: 'center'
 });
+titleSlide.addCharacter({
+    character: 'char1',
+    x: 425, y: 350, width: 150, height: 200,
+    actions: [{ type: 'text', text: 'You can create me from code!' }]
+});
 pres.addSlide(titleSlide);
 
-// 4. Add a source for the final slide
+// 4. Add a quiz
+pres.addQuiz({
+    title: 'Pop Quiz!',
+    questions: [
+        {
+            type: 'multiple-choice',
+            questionText: 'Is scripting cool?',
+            timer: 15,
+            options: [
+                { text: 'Yes!', isCorrect: true },
+                { text: 'Absolutely!', isCorrect: true }
+            ]
+        }
+    ]
+});
+
+
+// 5. Add a source for the final slide
 pres.addSource({
     title: 'Visually Script Documentation',
     url: 'https://github.com/your-repo/visually-script',
     notes: 'The official documentation.'
 });
 
-// 5. Return the presentation object. Visually will handle the export.
+// 6. Return the presentation object. Visually will handle the export.
 return pres;
 
 ```
@@ -80,6 +102,9 @@ A generic method to add any valid `MediaItem`. It's generally easier to use the 
 #### `.addYouTube({ name, url, ... })`
 #### `.addVideo({ name, dataUrl, ... })`
 #### `.addUrl({ name, url, ... })`
+#### `.addCodeFile({ name, content, language, ... })`
+#### `.addCsv({ name, content, headers, rows, ...})`
+
 
 Adds a media item of the specified type to the presentation queue.
 - **`name`**: `string` - The name displayed in the queue.
@@ -91,6 +116,16 @@ Adds a media item of the specified type to the presentation queue.
 
 Adds a custom slide to the queue.
 - **`slide`**: `Slide` - An instance of the `Slide` class.
+
+#### `.addQuiz(quizData)`
+
+Adds a quiz to the presentation queue.
+- **`quizData`**: An object matching the `Quiz` structure (without the `id`).
+
+#### `.addCodeProject(projectData)`
+
+Adds a code project to the presentation queue.
+- **`projectData`**: An object matching the `CodeProject` structure (without the `id`).
 
 #### `.addSource({ title, url, ... })`
 
@@ -140,3 +175,10 @@ Adds a formula element to the slide.
 Adds a shape element (rectangle, line, arrow) to the slide.
 - **`shape`**: `'rectangle' | 'line' | 'arrow'`
 - **`...`**: Styling properties like `strokeColor`, `strokeWidth`, `fillColor`.
+
+#### `.addCharacter({ character, x, y, ... })`
+
+Adds an animated character to the slide.
+- **`character`**: `'char1'` | `'char2'` | etc. - The character to display.
+- **`actions`**: `GamificationAction[]` - An array of actions for the character to perform.
+- **`x`, `y`, `width`, `height`**: `number` - Position and dimensions.
