@@ -3,7 +3,13 @@
  * Contains the Presentation and Slide classes for programmatically building presentations.
  */
 
-import type { MediaItem, PresentationSlide, SlideElement, SourceItem, TextSlideElement, ImageSlideElement, MathSlideElement, ShapeSlideElement } from './types';
+import type { 
+    MediaItem, PresentationSlide, SlideElement, SourceItem, 
+    TextSlideElement, ImageSlideElement, MathSlideElement, ShapeSlideElement, 
+    GamificationElement, GamificationAction,
+    Quiz, QuizQuestion, MultipleChoiceQuestion, OpenTextQuestion,
+    CodeProject, CodeFile
+} from './types';
 
 // Helper to generate unique IDs
 const generateId = (): string => `${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 9)}`;
@@ -82,6 +88,21 @@ export class Slide {
         this.addElement({ ...defaults, ...props, id: generateId(), type: 'shape' });
         return this;
     }
+    
+    /**
+     * Adds an animated character to the slide.
+     * @param {Partial<Omit<GamificationElement, 'id' | 'type'>>} props - Character properties.
+     */
+    addCharacter(props: Partial<Omit<GamificationElement, 'id' | 'type'>>) {
+        const defaults = {
+            character: 'char1',
+            x: 50, y: 350, width: 150, height: 200,
+            actions: [{ id: generateId(), type: 'text', text: 'Hello!' }]
+        };
+        this.addElement({ ...defaults, ...props, id: generateId(), type: 'gamification' });
+        return this;
+    }
+
 
     /**
      * Sets the background color of the slide.
@@ -175,6 +196,59 @@ export class Presentation {
         this.sources.push({ ...source, id: generateId() });
         return this;
     }
+    
+    /**
+     * Adds a quiz to the presentation.
+     * @param {Omit<Quiz, 'id'>} quizData - The quiz data.
+     */
+    addQuiz(quizData: Omit<Quiz, 'id'>) {
+        this.addMediaItem({
+            type: 'quiz',
+            name: quizData.title,
+            quiz: { ...quizData, id: generateId() }
+        });
+        return this;
+    }
+    
+    /**
+     * Adds a code project to the presentation.
+     * @param {Omit<CodeProject, 'id'>} projectData - The code project data.
+     */
+    addCodeProject(projectData: Omit<CodeProject, 'id'>) {
+        this.addMediaItem({
+            type: 'code-project',
+            name: projectData.title,
+            project: { ...projectData, id: generateId() },
+            viewMode: 'overview'
+        });
+        return this;
+    }
+    
+    /**
+     * Adds a single code file to the presentation.
+     * @param {Omit<CodeFile, 'id'>} fileData - The code file data.
+     */
+    addCodeFile(fileData: Omit<CodeFile, 'id'>) {
+        this.addMediaItem({
+            type: 'code-file',
+            name: fileData.name,
+            ...fileData
+        });
+        return this;
+    }
+    
+    /**
+     * Adds a CSV file to the presentation.
+     * @param {{ name: string, content: string, headers: string[], rows: (string | number)[][] }} csvData - The CSV data.
+     */
+    addCsv(csvData: { name: string; content: string; headers: string[]; rows: (string | number)[][]; notes?: string; transition?: MediaItem['transition'] }) {
+        this.addMediaItem({
+            type: 'csv',
+            ...csvData
+        });
+        return this;
+    }
+
 
     /**
      * Exports the entire presentation to a JSON string compatible with Visually's import function.
