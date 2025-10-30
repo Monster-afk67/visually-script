@@ -20,12 +20,15 @@ export interface PresentationSlide {
     elements: SlideElement[];
     backgroundColor?: string;
     backgroundImageUrl?: string;
+    borderStyle?: 'none' | 'solid' | 'ants' | 'poop' | 'ants_normal' | 'ants_glow' | 'poop_normal' | 'poop_glow' | 'spiders' | 'spider_normal' | 'spider_glow';
+    borderColor?: string;
+    borderWidth?: number;
 }
 
 // Base for all elements that can be placed on a slide
 export interface SlideElement {
     id: string;
-    type: 'text' | 'image' | 'math' | 'shape' | 'gamification';
+    type: 'text' | 'image' | 'math' | 'shape' | 'gamification' | 'sticker';
     x: number;
     y: number;
     width: number;
@@ -64,6 +67,13 @@ export interface ShapeSlideElement extends SlideElement {
     strokeColor: string;
     strokeWidth: number;
     fillColor?: string;
+}
+
+export interface StickerSlideElement extends SlideElement {
+    type: 'sticker';
+    content: string; // The emoji character
+    fontSize: number; // Controls the size
+    rotation: number; // in degrees
 }
 
 // --- GAMIFICATION TYPES (for scripting) ---
@@ -134,3 +144,29 @@ export interface CodeProject {
     title: string;
     files: CodeFile[];
 }
+
+// --- QR CODE TYPES ---
+export type QrCodeOptions = {
+    width?: number;
+    height?: number;
+    margin?: number;
+    qrOptions?: {
+        errorCorrectionLevel?: 'L' | 'M' | 'Q' | 'H';
+    };
+    dotsOptions?: {
+        type?: 'rounded' | 'dots' | 'classy' | 'classy-rounded' | 'square' | 'extra-rounded';
+        color?: string;
+    };
+    cornersSquareOptions?: {
+        type?: 'dot' | 'square' | 'extra-rounded';
+        color?: string;
+    };
+    cornersDotOptions?: {
+        type?: 'dot' | 'square';
+        color?: string;
+    };
+    backgroundOptions?: {
+        color?: string;
+    };
+    image?: string | null;
+};
