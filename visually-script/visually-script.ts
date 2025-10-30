@@ -5,10 +5,10 @@
 
 import type { 
     MediaItem, PresentationSlide, SlideElement, SourceItem, 
-    TextSlideElement, ImageSlideElement, MathSlideElement, ShapeSlideElement, 
+    TextSlideElement, ImageSlideElement, MathSlideElement, ShapeSlideElement, StickerSlideElement,
     GamificationElement, GamificationAction,
     Quiz, QuizQuestion, MultipleChoiceQuestion, OpenTextQuestion,
-    CodeProject, CodeFile
+    CodeProject, CodeFile, QrCodeOptions
 } from './types';
 
 // Helper to generate unique IDs
@@ -26,6 +26,7 @@ export class Slide {
             title: title,
             backgroundColor: backgroundColor,
             elements: [],
+            borderStyle: 'none',
         };
     }
 
@@ -58,6 +59,22 @@ export class Slide {
             x: 10, y: 10, width: 300, height: 200
         };
         this.addElement({ ...defaults, ...props, id: generateId(), type: 'image' });
+        return this;
+    }
+
+    /**
+     * Adds a sticker (emoji) element to the slide.
+     * @param {{ content: string, x: number, y: number, size?: number, rotation?: number }} props - Sticker properties.
+     */
+    addSticker(props: { content: string, x: number, y: number, size?: number, rotation?: number }) {
+        const { content, x, y, size = 100, rotation = 0 } = props;
+        const newElement: StickerSlideElement = {
+            id: generateId(), type: 'sticker', content,
+            x, y, width: size, height: size, // Width and height are derived from size
+            fontSize: size, // Font size controls emoji size
+            rotation,
+        };
+        this.addElement(newElement);
         return this;
     }
     
@@ -121,6 +138,17 @@ export class Slide {
         this.slide.backgroundImageUrl = url;
         return this;
     }
+    
+    /**
+     * Sets a border for the slide.
+     * @param {{ style: PresentationSlide['borderStyle'], color?: string, width?: number }} props - Border properties.
+     */
+    setBorder(props: { style: PresentationSlide['borderStyle'], color?: string, width?: number }) {
+        this.slide.borderStyle = props.style;
+        if (props.color) this.slide.borderColor = props.color;
+        if (props.width) this.slide.borderWidth = props.width;
+        return this;
+    }
 
     /**
      * Returns the internal slide object.
@@ -171,6 +199,11 @@ export class Presentation {
 
     addVideo(props: { name: string; dataUrl: string; notes?: string; transition?: MediaItem['transition'] }) {
         this.addMediaItem({ type: 'video', startTime: 0, timestamps: [], ...props });
+        return this;
+    }
+
+    addOfficeFile(props: { name: string; dataUrl?: string; notes?: string; transition?: MediaItem['transition'] }) {
+        this.addMediaItem({ type: 'office', ...props });
         return this;
     }
     
@@ -239,12 +272,57 @@ export class Presentation {
     
     /**
      * Adds a CSV file to the presentation.
-     * @param {{ name: string, content: string, headers: string[], rows: (string | number)[][] }} csvData - The CSV data.
+     * @param {{ name: string, content?: string, headers?: string[], rows?: (string | number)[][] }} csvData - The CSV data.
      */
-    addCsv(csvData: { name: string; content: string; headers: string[]; rows: (string | number)[][]; notes?: string; transition?: MediaItem['transition'] }) {
+    addCsv(csvData: { name: string; content?: string; headers?: string[]; rows?: (string | number)[][]; notes?: string; transition?: MediaItem['transition'] }) {
+        if (!csvData.content && !csvData.rows) {
+            console.warn('CSV item requires either content (raw string) or rows/headers.');
+            return this;
+        }
+
+        let headers = csvData.headers || [];
+        let rows = csvData.rows || [];
+        let content = csvData.content || '';
+
+        if (content && (!csvData.headers || !csvData.rows)) {
+            const lines = content.split('\n').filter(line => line.trim() !== '');
+            headers = lines[0]?.split(',').map(h => h.trim()) || [];
+            rows = lines.slice(1).map(line => line.split(',').map(cell => {
+                const trimmed = cell.trim();
+                return isNaN(Number(trimmed)) ? trimmed : Number(trimmed);
+            }));
+        } else if (rows.length > 0 && !content) {
+            content = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+        }
+
         this.addMediaItem({
             type: 'csv',
-            ...csvData
+            name: csvData.name,
+            headers,
+            rows,
+            content,
+            notes: csvData.notes,
+            transition: csvData.transition,
+        });
+        return this;
+    }
+
+    /**
+     * Adds a QR Code slide to the presentation.
+     * @param {object} qrCodeData - The data for the QR code slide.
+     */
+    addQrCode(qrCodeData: { title: string, url: string, description?: string, backgroundColor?: string, qrOptions?: QrCodeOptions, notes?: string, transition?: MediaItem['transition'] }) {
+        const defaults = {
+            description: 'Scan the code',
+            backgroundColor: '#FFFFFF',
+            scanCount: 0,
+            qrOptions: {},
+        };
+        this.addMediaItem({
+            type: 'qr-code',
+            name: qrCodeData.title,
+            ...defaults,
+            ...qrCodeData
         });
         return this;
     }
